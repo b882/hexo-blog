@@ -3,12 +3,21 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
+<<<<<<< HEAD
 title: Hexo
 subtitle: ''
 description: ''
 keywords:
 author: John Doe
 language: en
+=======
+title: hybrz的博客
+subtitle: ''
+description: ''
+keywords:
+author: 和渝彬
+language: zh-CN
+>>>>>>> f6ad6c3976a776521278ba18af6a1b7f215ec7a5
 timezone: ''
 
 # URL
@@ -96,7 +105,11 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
+<<<<<<< HEAD
 theme: landscape
+=======
+theme: butterfly
+>>>>>>> f6ad6c3976a776521278ba18af6a1b7f215ec7a5
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
