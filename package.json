@@ -19,16 +19,9 @@
     "hexo-generator-tag": "^2.0.0",
     "hexo-renderer-ejs": "^2.0.0",
     "hexo-renderer-marked": "^7.0.0",
-<<<<<<< HEAD
-=======
     "hexo-renderer-pug": "^3.0.0",
->>>>>>> f6ad6c3976a776521278ba18af6a1b7f215ec7a5
     "hexo-renderer-stylus": "^3.0.1",
     "hexo-server": "^3.0.0",
     "hexo-theme-landscape": "^1.0.0"
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> f6ad6c3976a776521278ba18af6a1b7f215ec7a5
