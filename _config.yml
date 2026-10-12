@@ -9,11 +9,11 @@ description: ''
 keywords:
 author: 和渝彬
 language: zh-CN
-timezone: ''
+timezone: Asia/Shanghai
 
 # URL
-## Set your site url here.
-url: http://example.com
+url: https://heyubin.top
+root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -46,6 +46,7 @@ post_asset_folder: false
 relative_link: false
 future: true
 
+# Syntax Highlighting
 syntax_highlighter: highlight.js
 
 highlight:
@@ -60,7 +61,7 @@ prismjs:
   line_number: true
   tab_replace: ''
 
-# Home page setting
+# Home Page
 index_generator:
   path: ''
   per_page: 10
@@ -71,10 +72,10 @@ default_category: uncategorized
 category_map:
 tag_map:
 
-# Metadata elements
+# Metadata
 meta_generator: true
 
-# Date / Time format
+# Date / Time
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss
 updated_option: 'mtime'
@@ -83,7 +84,7 @@ updated_option: 'mtime'
 per_page: 10
 pagination_dir: page
 
-# Include / Exclude file(s)
+# Include / Exclude
 include:
 exclude:
 ignore:
