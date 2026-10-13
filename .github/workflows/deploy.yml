@@ -21,8 +21,10 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
 
           script: |
+            set -eu
             cd /www/wwwroot/hexo-blog
-            git pull origin main
+            git pull --ff-only origin main
+            git clean -fd -- source/_posts/
             npm install
             hexo clean
             hexo generate
