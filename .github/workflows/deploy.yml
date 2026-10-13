@@ -12,6 +12,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build site
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload generated site
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          source: 'public/*'
+          target: '/tmp/hexo-blog-deploy-${{ github.run_id }}'
+          strip_components: 1
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
@@ -22,11 +45,7 @@ jobs:
 
           script: |
             set -eu
-            cd /www/wwwroot/hexo-blog
-            git pull --ff-only origin main
-            git clean -fd -- source/_posts/
-            npm install
-            hexo clean
-            hexo generate
+            test -f /tmp/hexo-blog-deploy-${{ github.run_id }}/index.html
             rm -rf /www/wwwroot/heyubin.top/*
-            cp -r public/* /www/wwwroot/heyubin.top/
+            cp -a /tmp/hexo-blog-deploy-${{ github.run_id }}/. /www/wwwroot/heyubin.top/
+            rm -rf /tmp/hexo-blog-deploy-${{ github.run_id }}
