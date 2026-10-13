@@ -1,0 +1,10 @@
+avatar:
+  img: /img/avatar.png
+  effect: false
+
+aside:
+  card_author:
+    button:
+      link: https://github.com/b882
+  card_announcement:
+    content: 欢迎来到我的博客!
