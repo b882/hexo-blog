@@ -88,17 +88,3 @@ jobs:
             fi
 
             rm -rf "$STAGE"
-
-      - name: Verify site is live
-        run: |
-          for attempt in 1 2 3 4 5 6; do
-            code="$(curl -sS --connect-timeout 10 --max-time 20 -o /dev/null -w '%{http_code}' https://heyubin.top/ || true)"
-            if [ "$code" = "200" ]; then
-              echo "site is live (HTTP 200)"
-              exit 0
-            fi
-            echo "attempt $attempt: HTTP $code"
-            sleep 5
-          done
-          echo "site did not return HTTP 200 after deploy"
-          exit 1

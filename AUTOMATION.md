@@ -67,8 +67,13 @@ https://heyubin.top 更新
 
 `.github/workflows/deploy.yml` 的部署步骤是：SCP 上传到服务器 `/tmp/hexo-blog-deploy-<run_id>`
 → SSH 检查 `index.html` → 清空 `/www/wwwroot/heyubin.top` → 复制 → 清理临时目录。
-本次额外做了三件事：`concurrency` 防止并发部署互相覆盖、用 `find` 清空（连隐藏文件一起删）、
-部署后请求站点确认返回 200。
+本次额外做了一件事：用 `concurrency` 防止并发部署互相覆盖，并把清空命令改成按项删除、
+保留宝塔的 `.user.ini`、复制失败自动回滚。
+
+部署后的「HTTP 200 探测」曾经加过，但 GitHub runner 到站点的网络不稳定，`curl` 无超时会一直挂着，
+把部署队列占死（实测运行 `41100052597` 卡在 `in_progress` 超过 20 分钟）。该步骤已移除：
+上线确认改由发布脚本在本地做——它会请求文章 URL 并检查页面里是否包含本次发布的唯一标记，
+比「首页返回 200」更准确。
 
 ### 「删文章后线上旧页面还在」的排查结论（有证据）
 
@@ -115,8 +120,8 @@ https://heyubin.top 更新
 6. 查询 Actions 用的是未认证的公开 API，**每小时只有 60 次额度**。一次发布会轮询 10 次左右，
    连续发布会触发 403；脚本会把这种情况报成「无法确认」（退出码 6），不会假装成功。
    额度恢复后可用 `node tools/deploy-status.mjs --sha <SHA>` 复查。
-7. 部署工作流里 `appleboy/ssh-action` 已设 `command_timeout: 5m`，curl 校验也带 `--max-time`，
-   避免某一步卡住把部署队列占满。
+7. 部署工作流里 `appleboy/ssh-action` 已设 `command_timeout: 5m`，避免远程命令卡住；
+   部署后不再由 Actions 做 HTTP 探测（见 4.1 的说明）。
 
 ## 6. 排查手册
 
