@@ -4,10 +4,17 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+# 同一时间只允许一次部署，避免两个运行互相覆盖目录
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -25,6 +32,7 @@ jobs:
         run: |
           npm ci
           npm run build
+          test -f public/index.html
 
       - name: Upload generated site
         uses: appleboy/scp-action@v0.1.7
@@ -45,7 +53,33 @@ jobs:
 
           script: |
             set -eu
-            test -f /tmp/hexo-blog-deploy-${{ github.run_id }}/index.html
-            rm -rf /www/wwwroot/heyubin.top/*
-            cp -a /tmp/hexo-blog-deploy-${{ github.run_id }}/. /www/wwwroot/heyubin.top/
-            rm -rf /tmp/hexo-blog-deploy-${{ github.run_id }}
+            STAGE="/tmp/hexo-blog-deploy-${{ github.run_id }}"
+            ROOT="/www/wwwroot/heyubin.top"
+
+            test -f "$STAGE/index.html"
+            mkdir -p "$ROOT"
+
+            # 先清空站点目录（含隐藏文件），否则删除文章后线上会残留旧页面
+            find "$ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+
+            # 再整体复制新站点
+            cp -a "$STAGE"/. "$ROOT"/
+
+            # 关键文件校验：复制不完整就让本次部署失败，而不是假装成功
+            test -f "$ROOT/index.html"
+
+            rm -rf "$STAGE"
+
+      - name: Verify site is live
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' https://heyubin.top/ || true)"
+            if [ "$code" = "200" ]; then
+              echo "site is live (HTTP 200)"
+              exit 0
+            fi
+            echo "attempt $attempt: HTTP $code"
+            sleep 5
+          done
+          echo "site did not return HTTP 200 after deploy"
+          exit 1

@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "publish:algorithm": "node tools/publish-algorithm.mjs",
+    "deploy:status": "node tools/deploy-status.mjs",
     "build": "hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
