@@ -55,18 +55,35 @@ jobs:
             set -eu
             STAGE="/tmp/hexo-blog-deploy-${{ github.run_id }}"
             ROOT="/www/wwwroot/heyubin.top"
+            BACKUP="/www/wwwroot/.heyubin.top.bak"
 
             test -f "$STAGE/index.html"
             mkdir -p "$ROOT"
 
-            # 先清空站点目录（含隐藏文件），否则删除文章后线上会残留旧页面
-            find "$ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+            # 备份旧站点，后续任何一步失败都能回滚
+            rm -rf "$BACKUP" 2>/dev/null || true
+            if [ -n "$(ls -A "$ROOT" 2>/dev/null || true)" ]; then
+              cp -a "$ROOT" "$BACKUP" || true
+            fi
 
-            # 再整体复制新站点
-            cp -a "$STAGE"/. "$ROOT"/
+            # 清空旧站点。
+            # 必须保留宝塔的 .user.ini：它通常带 chattr +i，rm 会失败并让 set -e 中断，
+            # 之前正是因此出现「目录被清空、新文件没复制、站点 403」。
+            find "$ROOT" -mindepth 1 -maxdepth 1 ! -name '.user.ini' -exec rm -rf {} + || true
 
-            # 关键文件校验：复制不完整就让本次部署失败，而不是假装成功
-            test -f "$ROOT/index.html"
+            # 复制新站点，失败自动回滚
+            if ! cp -a "$STAGE"/. "$ROOT"/; then
+              echo "复制新站点失败，正在回滚旧站点"
+              if [ -d "$BACKUP" ]; then cp -a "$BACKUP"/. "$ROOT"/ || true; fi
+              exit 1
+            fi
+
+            # 关键文件校验，缺失同样回滚
+            if [ ! -f "$ROOT/index.html" ]; then
+              echo "缺少 index.html，正在回滚旧站点"
+              if [ -d "$BACKUP" ]; then cp -a "$BACKUP"/. "$ROOT"/ || true; fi
+              exit 1
+            fi
 
             rm -rf "$STAGE"
 
