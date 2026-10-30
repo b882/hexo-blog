@@ -19,6 +19,7 @@ D:\hexo-blog
 │   ├── solution-template.md        # 题解正文结构与写作规则
 │   └── lib/
 │       ├── github.mjs              # GitHub Actions API（公开仓库只读，无需 Token）
+│       ├── live.mjs                # 请求线上文章页并用唯一标记确认「真的上线」
 │       └── repo.mjs                # 读取 .git/config 与 _config.yml（不调用 git）
 ├── .github/workflows/deploy.yml    # push main → 构建 → SCP → SSH 清空并替换站点目录
 ├── .algorithm-work/                # 发布工作区（gitignore）：草稿、命令日志、文章快照、last-result.json
@@ -82,6 +83,22 @@ https://heyubin.top 更新
 结论：当前链路能正确处理旧文件，不要再「凭感觉」重写部署方式。本次只做了低风险加固，
 未改变部署拓扑。
 
+### 2026-10-31 部署事故（已定位并修复）
+
+把清空命令从 `rm -rf "$ROOT"/*`（glob 不匹配隐藏文件）改成
+`find "$ROOT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +` 后，部署失败、线上返回 403。
+
+- 证据：运行 `41099320165` 的 `Deploy to Server` 步骤失败、`Verify site is live` 被跳过；
+  随后 `https://heyubin.top/` 返回 `403 Forbidden`（目录被清空但新文件没有复制进去）。
+- 原因：宝塔会在站点根目录放 `.user.ini`，通常带 `chattr +i`。`find` 把它也列入删除，
+  `rm` 失败返回非 0，`set -e` 直接中断，`cp` 根本没执行。旧的 glob 写法之所以一直正常，
+  正是因为它匹配不到 `.user.ini`。
+- 修复（当前 `deploy.yml`）：删除时排除 `.user.ini`、删除失败不中断、复制前先备份旧站点，
+  复制失败或首页缺失时自动回滚；修复后运行 `41099671196` 成功，首页与文章页恢复 200。
+
+教训：服务器侧脚本无法在本地验证，涉及「清空目录」的改动必须保守，并且要有回滚路径。
+另外服务器上会保留一份 `/www/wwwroot/.heyubin.top.bak` 备份目录，下次部署会被覆盖，属正常。
+
 ## 5. 运行环境限制（踩过的坑）
 
 1. **`D:\hexo-blog` 在 Harness 会话工作区之外**：读写、构建、推送都需要一次性放开沙箱
@@ -111,6 +128,8 @@ https://heyubin.top 更新
 ## 7. 维护检查清单
 
 - 改 `deploy.yml` 后：手动触发一次 workflow，确认站点 200、文章数正确。
+- **不要删除或修改站点根目录的 `.user.ini`**（宝塔面板文件，带 `chattr +i`）；清空目录的脚本必须排除它。
+- 部署脚本必须保留回滚路径：先备份旧站点，复制或校验失败时自动恢复。
 - 改分类名：同步修改 `tools/publish-algorithm.mjs` 的 `CATEGORY` 和已有文章 front-matter。
 - 不要把 `.algorithm-work/`、`public/`、`db.json` 提交进仓库。
 - 不要提交任何 API Key / 私钥 / 服务器口令；部署密钥只在 GitHub Secrets。

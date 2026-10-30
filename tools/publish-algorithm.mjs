@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 import { readRemoteSlug, readSiteUrl } from './lib/repo.mjs';
 import { waitForDeploy } from './lib/github.mjs';
+import { checkLivePage } from './lib/live.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const POSTS_DIR = path.join(ROOT, 'source', '_posts');
@@ -56,8 +57,6 @@ class PublishError extends Error {
     this.detail = detail;
   }
 }
-
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function normalizeNewlines(text) {
   return String(text).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
@@ -689,31 +688,6 @@ function pushMain() {
     throw new PublishError('git', EXIT.GIT, '推送后远端 main 与本地不一致', `本地 ${local}，远端 ${remoteSha}`);
   }
   return local;
-}
-
-async function checkLivePage(siteUrl, urlPath, token, timeoutMs) {
-  if (!siteUrl || timeoutMs <= 0) return { state: 'skipped', url: '' };
-  const clean = `${siteUrl}${urlPath}`;
-  const target = `${clean}?v=${encodeURIComponent(token)}`;
-  const deadline = Date.now() + timeoutMs;
-  let lastStatus = 0;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(target, {
-        headers: { 'user-agent': 'hexo-blog-publisher', 'cache-control': 'no-cache' },
-        signal: AbortSignal.timeout(15000),
-      });
-      lastStatus = response.status;
-      if (response.ok) {
-        const html = await response.text();
-        if (html.includes(token)) return { state: 'live', url: clean };
-      }
-    } catch {
-      lastStatus = 0;
-    }
-    await sleep(5000);
-  }
-  return { state: 'unknown', url: clean, status: lastStatus };
 }
 
 function printResult(result) {
