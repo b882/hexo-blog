@@ -50,6 +50,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
+          # 远程命令最多执行 5 分钟，卡住时快速失败，而不是一直挂着
+          command_timeout: 5m
 
           script: |
             set -eu
@@ -90,7 +92,7 @@ jobs:
       - name: Verify site is live
         run: |
           for attempt in 1 2 3 4 5 6; do
-            code="$(curl -sS -o /dev/null -w '%{http_code}' https://heyubin.top/ || true)"
+            code="$(curl -sS --connect-timeout 10 --max-time 20 -o /dev/null -w '%{http_code}' https://heyubin.top/ || true)"
             if [ "$code" = "200" ]; then
               echo "site is live (HTTP 200)"
               exit 0
