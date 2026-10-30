@@ -112,6 +112,11 @@ https://heyubin.top 更新
    和线上校验都用 Node `fetch`，不要用 curl。
 5. 本机没有服务器 SSH 凭据，**服务器侧脚本无法在本地验证**；服务器部署只能通过 push 后观察
    Actions。修改 `deploy.yml` 的 shell 片段后，建议先在 Actions 页面手动 `Run workflow` 验证一次。
+6. 查询 Actions 用的是未认证的公开 API，**每小时只有 60 次额度**。一次发布会轮询 10 次左右，
+   连续发布会触发 403；脚本会把这种情况报成「无法确认」（退出码 6），不会假装成功。
+   额度恢复后可用 `node tools/deploy-status.mjs --sha <SHA>` 复查。
+7. 部署工作流里 `appleboy/ssh-action` 已设 `command_timeout: 5m`，curl 校验也带 `--max-time`，
+   避免某一步卡住把部署队列占满。
 
 ## 6. 排查手册
 
