@@ -12,11 +12,14 @@ tags:
   - "重心"
   - "二分"
   - "Universal Cup"
+  - "ICPC"
+  - "南京站"
+  - "sua"
 ---
 
 ## 题意
 
-题目来源：The 3rd Universal Cup, Stage 16: Nanjing, Problem G（2024 年 11 月 9—10 日）。
+题目来源：2024 ICPC 亚洲区域赛南京站 G 题（The 3rd Universal Cup, Stage 16: Nanjing，2024 年 11 月 9—10 日），SUA 命题组出题。
 
 给定一棵 `n` 个点的二叉树，其中有一个未知的特殊节点 `s`。每次可以询问两个不同节点 `u`、`v`，裁判告诉你 `d(u,s)` 与 `d(v,s)` 的大小关系（`0/1/2`）。最多询问 `floor(log2 n)` 次，求出 `s`。裁判是适应性的，只要答案与之前的回答不冲突即可。
 
@@ -151,4 +154,4 @@ int main() {
 }
 ```
 
-<!-- algopost-151ecc70 -->
+<!-- algopost-e17b43d0 -->
